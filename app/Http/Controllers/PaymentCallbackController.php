@@ -20,12 +20,12 @@ class PaymentCallbackController extends Controller
         $status_code = $request->status_code;
         $merchant_id = $request->name; // Extract the merchant_name from the request
 
-        if ($status_code === 1) {
+        if ($status_code == 1) {
             // Get the Transaction Record
             $payment_transaction = DB::table('payment_transactions')->where('order_id', $order_id)->first();
 
             if ($payment_transaction) {
-                $transaction_id = $payment_transaction->id;
+                $transaction_id = $payment_transaction->id; 
                 $transaction_type = $payment_transaction->transaction_type;
                 $amount = $payment_transaction->amount;
                 $mobile = $payment_transaction->resource_id;
@@ -34,7 +34,7 @@ class PaymentCallbackController extends Controller
                 $status_code = $payment_transaction->status_code;
                 $transaction_no = $payment_transaction->transaction_no;
 
-                if ($transaction_type === "payment") {
+                if ($transaction_type == "payment") {
                     // Handle successful payment
                     $this->handleSuccessfulPayment($transaction_id, $order_id, $mobile, $amount, $merchant_id, $status_code, $status_message, $transaction_no);
                     return response('Done');
@@ -45,7 +45,7 @@ class PaymentCallbackController extends Controller
         return response('Failed', 400);
     }
 
-    private function handleSuccessfulPayment($transaction_id, $order_id, $mobile, $amount, $merchant_id, $status_code, $status_message, $transaction_no): void
+    private function handleSuccessfulPayment($transaction_id, $order_id, $mobile, $amount, $merchant_id, $status_code, $status_message, $transaction_no)
     {
         // Insert payment record into payments table
         DB::table('payments')->insert([
@@ -64,7 +64,7 @@ class PaymentCallbackController extends Controller
         $merchant = DB::table('merchants')->where('merchant_id', $merchant_id) ->first();
         if ($merchant) {
             $merchant_phone_number = $merchant->phone_number;
-            $merchant_name = $merchant->merchants_name;
+            $merchant_name = $merchant->merchants_name;  
 
 
             // Send SMS to the merchant
@@ -72,8 +72,8 @@ class PaymentCallbackController extends Controller
             $this->sendSMS($merchant_phone_number, $successMessageToMerchant);
 
             // Send SMS to the user (payer) confirming the payment
-            $successMessageToUser = "Hello! You have successfully paid GHS " . $amount . " to " . $merchant_name . ".\n\nPowered by Emergent Payments. Contact us on 0302263014.";
-            $this->sendSMS($mobile, $successMessageToUser);
+             $successMessageToUser = "Hello! You have successfully paid GHS " . $amount . " to " . $merchant_name . ".\n\nPowered by Emergent Payments. Contact us on 0302263014.";
+             $this->sendSMS($mobile, $successMessageToUser); 
 
         }
     }

@@ -36,9 +36,9 @@ class USSDController extends Controller
 
         // Querying merchant using both ussd_code and merchant_id
         $merchant = DB::table('merchants')
-            ->where('ussd_code', $service_code)
-            ->where('merchant_id', $merchant_id)
-            ->first();
+                     ->where('ussd_code', $service_code)
+                     ->where('merchant_id', $merchant_id)
+                     ->first();
 
         if ($type === "initiation") {
             if ($merchant) {
@@ -65,7 +65,7 @@ class USSDController extends Controller
                 if ($merchant) {
                     $app_id = $merchant->app_id;
                     $app_key = $merchant->app_key;
-                    //  $merchants_name = $merchant->merchants_name;
+                  //  $merchants_name = $merchant->merchants_name;
                     $merchant_id = $merchant->merchant_id;
                     $order_id = Str::random(12);
 
@@ -115,26 +115,26 @@ class USSDController extends Controller
                         if ($paymentTransaction = DB::table('payment_transactions')->where('order_id', $order_id)->first()) {
                             $transaction_id = $paymentTransaction->id;
 
+
                             DB::table('payment_transactions')
-                                ->where('id', $transaction_id)
-                                ->update([
-                                    'status_code' => $return->status_code,
-                                    'amount' => $amount,
-                                    'status_message' => $return->status_message,
-                                    'merchantcode' => $return->merchantcode,
-                                    'transaction_no' => $return->transaction_no,
-                                    'resource_id' => $mobile,
-                                    'transaction_type' => 'payment',
-                                    'order_id' => $order_id,
-                                    'merchant_name'=> $merchant_id,
-                                    'client_timestamp' => DB::raw('CURRENT_TIMESTAMP'),
-                                ]);
+                            ->where('id', $transaction_id)
+                            ->update([
+                                'status_code' => $return->status_code,
+                                'amount' => $amount,
+                                'status_message' => $return->status_message,
+                                'merchantcode' => $return->merchantcode,
+                                'transaction_no' => $return->transaction_no,
+                                'resource_id' => $mobile,
+                                'transaction_type' => 'payment',
+                                'order_id' => $order_id,
+                                'merchant_name'=> $merchant_id,
+                                'client_timestamp' => DB::raw('CURRENT_TIMESTAMP'),
+                            ]);
 
                         } else {
-
-                            $sql = "INSERT INTO payment_transactions
-                                   (status_code, amount, status_message, merchantcode, transaction_no, resource_id, transaction_type, order_id, merchants_name, client_timestamp)
-                                    VALUES
+                            $sql = "INSERT INTO payment_transactions 
+                                    (status_code, amount, status_message, merchantcode, transaction_no, resource_id, transaction_type, order_id, merchants_name, client_timestamp) 
+                                    VALUES 
                                     (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
 
                             DB::insert($sql, [
@@ -149,6 +149,7 @@ class USSDController extends Controller
                                 $merchant_id,
                             ]);
                         }
+
                         $paymentTransaction = DB::table('mother_merchants.payment_transactions')->where('order_id', $order_id)->first();
 
                         if ($return->status_code == 1) {
@@ -170,31 +171,32 @@ class USSDController extends Controller
 
         return response()->json($response);
     }
+
     private function sendPostRequest($mobile)
     {
         // Build the URL for the POST request with the number appended
         $url = "https://emergentghanadev.com/api/name-validation/live/$mobile";
-
+    
         try {
             // Make an HTTP POST request to the URL
             $response = Http::post($url);
-
+    
             // Log the response
             Log::info("API Response: " . $response->body());
-
+    
             // Decode the JSON response and store it in an array
             $apiResponse = $response->json();
-
+    
             // You can access the values like this
             $statusCode = $apiResponse['status_code'];
             $statusMessage = $apiResponse['status_message'];
             $firstName = $apiResponse['firstname'];
             $surname = $apiResponse['surname'];
             $valid = $apiResponse['valid'];
-
+    
             // Save the response in an array along with the phone number
             $responseData = ['phone_number' => $mobile, 'response' => $apiResponse];
-
+    
             return $responseData;
         } catch (\Exception $e) {
             // Handle exceptions (e.g., connection issues)
@@ -204,4 +206,3 @@ class USSDController extends Controller
         }
     }
 }
-
